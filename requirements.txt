@@ -1,0 +1,6 @@
+graphviz
+matplotlib
+networkx
+pefile
+vt-py
+pywin32

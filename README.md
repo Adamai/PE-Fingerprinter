@@ -9,7 +9,7 @@ A PE file analyzing tool that: \
   Please install Graphviz (https://graphviz.org/) to make full use of the graph generating feature.\
   \
   To run from source code:\
-  1.Replace "INSERT KEY HERE" in "PEAnalysisMod.py" with a valid API key from VirusTotal (https://developers.virustotal.com/reference#getting-started).\
+  1.Replace "INSERT KEY HERE" in "PEAnalysisMod.py" with a valid API key from VirusTotal (https://developers.virustotal.com/reference#getting-started ).\
   2.Make sure to install dependencies from "requirements.txt" with pip (https://pip.pypa.io/en/stable/user_guide/)\
   pip install -r requirements.txt\
   \

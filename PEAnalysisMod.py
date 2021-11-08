@@ -15,6 +15,7 @@ import hashlib
 import mimetypes
 import vt
 import requests
+import time
 
 class Depn:
   def __init__(self, name, path, md5, sha256, unsurePathFlag, functions):
@@ -36,7 +37,7 @@ def getDLLPath(dllName, directory, is32bit, deepLocalSearch, prioritizeLocal):
   DLLpath = ""
   uncertainFlag = False
   dllHandle = None
-  print(dllName)
+  #print(dllName)
   
   h_module_base=None
   try:
@@ -81,14 +82,14 @@ def getDLLPath(dllName, directory, is32bit, deepLocalSearch, prioritizeLocal):
       if(filesFoundLocal):
         DLLpath = filesFoundLocal[0]
         if(len(filesFoundLocal) > 1):
-          print("Dependency of same name found in more than one place in local subdirectory")
-          print(filesFoundLocal)
+          #print("Dependency of same name found in more than one place in local subdirectory")
+          #print(filesFoundLocal)
           uncertainFlag=True
       elif(filesFoundSystem):
         DLLpath = filesFoundSystem[0]
         if(len(filesFoundSystem) > 1):
-          print("Dependency of same name found in more than one place in Windows subdirectory")
-          print(filesFoundSystem)
+          #print("Dependency of same name found in more than one place in Windows subdirectory")
+          #print(filesFoundSystem)
           uncertainFlag=True
       else:
         #File not found
@@ -146,7 +147,7 @@ def getDLLPath(dllName, directory, is32bit, deepLocalSearch, prioritizeLocal):
             DLLpath = filesFoundSystem[0]
           else:
             uncertainFlag=True
-            print(DLLpath)
+            #print(DLLpath)
       
 
     if dllHandle is not None:
@@ -240,7 +241,9 @@ def getFileInfo(filePath):
           for entry in st.entries.items():
             string_version_info[entry[0].decode()] = entry[1].decode()
 
-  string_version_info['TimeDateStamp'] = pe.FILE_HEADER.dump_dict()['TimeDateStamp']['Value'].split('[')[1][:-1]
+  string_version_info['LastModificationTimeDateStamp'] = str(time.ctime(os.path.getmtime(filePath)))#pe.FILE_HEADER.dump_dict()['TimeDateStamp']['Value'].split('[')[1][:-1]
+  string_version_info['CreationTimeDateStamp'] = str(time.ctime(os.path.getctime(filePath)))
+  
   if hex(pe.FILE_HEADER.Machine) == '0x14c':
       string_version_info['BinaryType'] = "32-bit binary"
   else:
@@ -257,7 +260,7 @@ def getFileInfo(filePath):
   return string_version_info
 
 def getVTinfo(sha):
-  #CHANGING TO USE AN EXTERNAL FILE LATER
+  #CHANGE TO USE AN EXTERNAL FILE LATER
   VTclient = vt.Client("INSERT KEY HERE")
 
   VTfileInfo = VTclient.get_object("/files/"+sha)
@@ -267,6 +270,6 @@ def getVTinfo(sha):
   return VTfileInfo
 
 def getCVEresults(string):
-  #key:
+  
   response = requests.get("https://services.nvd.nist.gov/rest/json/cves/1.0?keyword="+string)
   return response.json()

@@ -418,7 +418,9 @@ def loadFile(filepath):
     fileVersion = None
     for info in fileInfo:
         details = details + info + ": " + fileInfo[info] + "\n"
-        if("ProductVersion" in info or "FileVersion" in info):
+        if("ProductVersion" in info):
+            fileVersion = str(fileInfo[info])
+        elif("FileVersion" in info):
             fileVersion = str(fileInfo[info])
     txt_fileDetails.delete('1.0', 'end')
     txt_fileDetails.insert('1.0', "File Details\n"+details)
@@ -458,7 +460,7 @@ def loadFile(filepath):
 
         if(not(':\\Windows\\' in dll.path)):
             nOutDepend = nOutDepend + 1
-            print(dll.path)
+            #print(dll.path)
 
     fileIntoTable(fileName)
 
@@ -482,6 +484,9 @@ def loadFile(filepath):
                         isSignatureValid = True
                 if('signers' in vtInfo.signature_info):
                     lbl_signed['text'] += "\nSignatures: " + str(vtInfo.signature_info['signers']).replace('; ', '\n                     ')
+            
+            if(lbl_signed['text'] == 'File signature status: Unsigned'):
+                lbl_signed['fg'] = "#CC7000"
 
             txt_apiDetails.delete('1.0', 'end')
             txt_apiDetails.insert('end', "  VirusTotal API results\n"+"Meaningful file name: "+vtInfo.meaningful_name+"\n\nEngines analysis summary:")
@@ -595,48 +600,58 @@ def loadFile(filepath):
 
         canvas.draw()
 
-        #Display Safety score:
-        # Not valid signature (20)
-        deductSignature = 0
-        if(not isSignatureValid):
-            deductSignature = 20
-        # CVE in current version (20 + 2*n) (upper limit: 30)
-        deductCVEcurVer = 0
-        if(nCVEcurVer > 0):
-            deductCVEcurVer = 20 + 2 * nCVEcurVer
-            if deductCVEcurVer > 30:
-                deductCVEcurVer = 30
-        # CVE in past versions (5 + 1*n) (upper limit: 20)
-        deductCVEpastVer = 0
-        if(nCVEallVer > nCVEcurVer):
-            deductCVEpastVer =  5 + (nCVEallVer - nCVEcurVer)
-            if deductCVEpastVer > 20:
-                deductCVEpastVer = 20
-        # VT malware analysis ((Malicious + Suspicious)/Total-unsupported-timouts-failure)
-        deductVTscan = 80 * ((VTsus + VTmalic)/VTtotal)
-        # Number of outside dependencies (10)
-        deductOutDep = nOutDepend
-        if deductOutDep > 10:
-            deductOutDep = 10
+        try:
+            #Display Safety score:
+            # Not valid signature (20)
+            deductSignature = 0
+            if(not isSignatureValid):
+                deductSignature = 20
+            # CVE in current version (20 + 2*n) (upper limit: 30)
+            deductCVEcurVer = 0
+            if(nCVEcurVer > 0):
+                deductCVEcurVer = 20 + 2 * nCVEcurVer
+                if deductCVEcurVer > 30:
+                    deductCVEcurVer = 30
+            # CVE in past versions (5 + 1*n) (upper limit: 20)
+            deductCVEpastVer = 0
+            if(nCVEallVer > nCVEcurVer):
+                deductCVEpastVer =  5 + (nCVEallVer - nCVEcurVer)
+                if deductCVEpastVer > 20:
+                    deductCVEpastVer = 20
+            # VT malware analysis ((Malicious + Suspicious)/Total-unsupported-timouts-failure)
+            deductVTscan = 80 * ((VTsus + VTmalic)/VTtotal)
+            # Number of outside dependencies (10)
+            deductOutDep = nOutDepend
+            if deductOutDep > 10:
+                deductOutDep = 10
 
-        trustScore = 100 - deductSignature - deductCVEcurVer - deductCVEpastVer - deductVTscan - deductOutDep
-        print(deductSignature)
-        print(deductCVEcurVer)
-        print(deductCVEpastVer)
-        print(deductVTscan)
-        print(deductOutDep)
-        
-        if trustScore < 0:
-            trustScore = 0
-        
-        lbl_score['text'] = 'Safety score:\n' + str(trustScore)+'%\n\n\n\nThis score is an estimated value based on the findings of this application.\nThe use of a proper malware defense tool is recommended.'
-        if(trustScore < 70):
+            trustScore = 100 - deductSignature - deductCVEcurVer - deductCVEpastVer - deductVTscan - deductOutDep
+            #print(deductSignature)
+            #print(deductCVEcurVer)
+            #print(deductCVEpastVer)
+            #print(deductVTscan)
+            #print(deductOutDep)
+            
+            if trustScore < 0:
+                trustScore = 0
+            
+            lbl_score['text'] = 'Safety score:\n' + str(trustScore)+'%\n\n\n\nThis score is an estimated value based on the findings of this application.\nThe use of a proper malware defense tool is recommended.'
+            if(trustScore < 70):
+                lbl_score['fg'] = '#8B0000'
+            elif(trustScore < 90):
+                lbl_score['fg'] = '#CC7000'
+            else:
+                lbl_score['fg'] = '#000000'
+            txt_apiDetails.insert('end', '\n\nSafety score: ' + str(trustScore)+'%')
+        except:
+            lbl_score['text'] = 'Safety score:\nNot enough data to estimate score.'
             lbl_score['fg'] = '#8B0000'
-        elif(trustScore < 90):
-            lbl_score['fg'] = '#CC7000'
+
+
+
         lbl_warningLink['text'] = 'Refer to https://nvd.nist.gov for the latest vulnerability discoveries and updates.'
         lbl_warningLink.bind("<Button-1>", lambda event: webbrowser.open('https://nvd.nist.gov/'))
-        txt_apiDetails.insert('end', '\n\nSafety score: ' + str(trustScore)+'%')
+        
         
 
 
